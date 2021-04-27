@@ -30,16 +30,19 @@ def playAudio(data, fs):
     p.terminate()
 
 if __name__ == '__main__':
-    path = "../BD/BD.mat"
+    #path = "../BD/BD.mat"
+    path = "../../Documentos/Mestrado_UTFPR/MATLAB/BD/BD.mat"
+
     test = scipy.io.loadmat(path)
     fs = test['fs'][0][0]
-    edema = test['edema']
+    print(test)
+    saudavel = test['saudavel_01']
     #print(edema.shape)
-    audio1 = np.array(edema[::,7]).astype(np.float32)
+    audio1 = np.array(saudavel[::,1]).astype(np.float32)
     playAudio(audio1,50000)
 
     t = np.linspace(0,0.5,25000)
-    plt.plot(t,edema[::,7])
+    plt.plot(t,saudavel[::,7])
     plt.show()
 
     '''
