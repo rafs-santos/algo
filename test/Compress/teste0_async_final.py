@@ -31,10 +31,14 @@ if __name__ == '__main__':
 
     path = "../../../Documentos/Mestrado_UTFPR/MATLAB/BD/BD_Sinais_New.mat"
 
-    test = scipy.io.loadmat(path)
-    fs = test['fs'][0][0]
-    #print(test)
-    saudavel = test['saudavel']
+    dataB = scipy.io.loadmat(path)
+    fs = dataB['fs'][0][0]
+
+    saudavel = dataB['saudavel']
+    edema = dataB['saudavel']
+    nodulo = dataB['saudavel']
+
+    vowelData = np.concatenate((saudavel, edema, nodulo), axis=0)
 
     ''' ------------ Code config '''
     L = 2500                    # Windows width
@@ -48,27 +52,47 @@ if __name__ == '__main__':
     Theta = Psi[perm,:]
     ''' ------------ Load .mat data'''
     LL = 10
-    Thre = []
+
+
+# %% Start Process  
     result = []
     t = time.time()
-# %% Start Process  
-    with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
-        for k in range(LL):
-            x = saudavel[k*L:(k+1)*L,1]
-            y = x[perm]
-            result.append(executor.submit(cvx_minimization, Theta, y, L, k))
-            print(time.time()-t)
+    n_sig = 3
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        count = 0
+        for j in range(n_sig):
+            for k in range(LL):
+                x = vowelData[k*L:(k+1)*L, j]
+                y = x[perm]
+                result.append(executor.submit(cvx_minimization, Theta, y, L, count))
+                count = count + 1
+                print(time.time()-t)
 
     print(time.time()-t)
-    #print(result[0].result())
+
     aux = []
-    for i in range(LL):
+    for i in range(count):
         aux.append(result[i].result())
 
     print([item[1] for item in aux])
     aux.sort(key = lambda aux: aux[1])
     print([item[1] for item in aux])
     sol = [item[0] for item in aux]
+    
+    solF = np.zeros((L*LL,n_sig))
+    xrecon = np.zeros((L*LL,n_sig))
+    for j in range(n_sig):
+        auxT = []
+        auxD = []
+        for k in range(j*LL,(j+1)*LL):
+            re = idct(sol[k])
+            auxD = np.append(auxD, re)
+            auxT = np.append(auxT, sol[k])
+        xrecon[:,j] = auxD
+        solF[:,j] = auxT
+    print(solF.shape)
+    scipy.io.savemat("matlab_matrix.mat", {'dcT':solF, 'xrecon':xrecon})
+    '''
     xrecon =[]
     for i in range(LL):
         re = idct(sol[i])
@@ -78,6 +102,7 @@ if __name__ == '__main__':
     plt.plot(xrecon,'r--')
 
     plt.show()
+    '''
 
     '''
     result[:].result().sort(key = lambda x: x[1])
