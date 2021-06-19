@@ -29,16 +29,16 @@ def cvx_minimization(Theta, y, L, k):
 
 if __name__ == '__main__':
 
-    path = "../../../Documentos/Mestrado_UTFPR/MATLAB/BD/BD_Sinais_New.mat"
+    path = "../../../../Documentos/Mestrado_UTFPR/MATLAB/BD/BD_Sinais_New.mat"
 
     dataB = scipy.io.loadmat(path)
     fs = dataB['fs'][0][0]
 
     saudavel = dataB['saudavel']
-    edema = dataB['saudavel']
-    nodulo = dataB['saudavel']
+    edema = dataB['edema']
+    nodulo = dataB['nodulo']
 
-    vowelData = np.concatenate((saudavel, edema, nodulo), axis=0)
+    vowelData = np.concatenate((saudavel, edema, nodulo), axis=1)
 
     ''' ------------ Code config '''
     L = 2500                    # Windows width
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
 
     # DCT transform
-    Psi = dct(np.identity(L))
+    Psi = dct(np.identity(L), norm='ortho')
     Theta = Psi[perm,:]
     ''' ------------ Load .mat data'''
     LL = 10
@@ -57,7 +57,8 @@ if __name__ == '__main__':
 # %% Start Process  
     result = []
     t = time.time()
-    n_sig = 3
+    n_sig = 45
+    #parameters = ()
     with concurrent.futures.ProcessPoolExecutor() as executor:
         count = 0
         for j in range(n_sig):
@@ -78,20 +79,21 @@ if __name__ == '__main__':
     aux.sort(key = lambda aux: aux[1])
     print([item[1] for item in aux])
     sol = [item[0] for item in aux]
-    
+
     solF = np.zeros((L*LL,n_sig))
     xrecon = np.zeros((L*LL,n_sig))
     for j in range(n_sig):
         auxT = []
         auxD = []
         for k in range(j*LL,(j+1)*LL):
-            re = idct(sol[k])
+            re = idct(sol[k], norm='ortho')
             auxD = np.append(auxD, re)
             auxT = np.append(auxT, sol[k])
         xrecon[:,j] = auxD
         solF[:,j] = auxT
     print(solF.shape)
-    scipy.io.savemat("matlab_matrix.mat", {'dcT':solF, 'xrecon':xrecon})
+
+    scipy.io.savemat("matlab_matrix45.mat", {'dcT':solF, 'xrecon':xrecon})
     '''
     xrecon =[]
     for i in range(LL):
