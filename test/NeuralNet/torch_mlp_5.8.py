@@ -8,26 +8,27 @@ import numpy as np
 
 class MLP(nn.Module):
     '''
-    Multilayer Perceptron.
+    -------- Multilayer Perceptron. --------
     '''
     def __init__(self):
         super().__init__()
-        input_feature = 4
+        input_feature = 3
         hidden_1 = 10
         hidden_2 = 1
         self.layers = nn.Sequential(
             #nn.Flatten(),
-            nn.Linear(4,10,bias=None),
+            nn.Linear(input_feature, hidden_1),
             nn.Sigmoid(),
-            nn.Linear(10, 1, bias=None),
+            nn.Linear(hidden_1, hidden_2, bias=True),
             nn.Sigmoid()
         )
+        print(self.layers)
     def forward(self, x):
         '''Forward pass'''
         return self.layers(x)
 
 if __name__ == '__main__':
-    path = '../../../Documentos/Mestrado_UTFPR/Disciplinas/2020_02/Machine_Learning/Dados/C/5.8/'
+    path = '../../../../Documentos/Mestrado_UTFPR/Disciplinas/2020_02/Machine_Learning/Dados/C/5.8/'
     '''
     Trying put data in gpu
     '''
@@ -36,12 +37,14 @@ if __name__ == '__main__':
     else:
       dev = "cpu"
     device = torch.device(dev)
-
+    '''
+     -------- Load Data to Traning --------
+    '''
     data_train = np.loadtxt(path + 'Pasta1.txt')
     data_train = data_train[:,1:]
-    bias_inp =np.ones((len(data_train),1))
+    #bias_inp =np.ones((len(data_train),1))
 
-    data_train = np.concatenate((bias_inp,data_train), axis=1)
+    #data_train = np.concatenate((bias_inp,data_train), axis=1)
     data_train = torch.tensor(data_train)
 
     data_train = data_train.to(device)
@@ -59,6 +62,9 @@ if __name__ == '__main__':
     # %% Configuration
 
     n_epoch = 50
+    '''
+     -------- Training the model --------
+    '''
     for epoch in range(0, n_epoch): # 5 epochs at maximum
         # Print epoch
         #print(f'Starting epoch {epoch+1}')
@@ -94,14 +100,14 @@ if __name__ == '__main__':
     # Process is complete.
     print('Training process has finished.')
     '''
-    # validate the model #
+    -------- validate the model --------
     '''
     mlp.eval() # prep model for evaluation
     data_test = np.loadtxt(path + 'Valida.txt')
     data_test = data_test[:,1:]
-    bias_inp =np.ones((len(data_test),1))
+    #bias_inp =np.ones((len(data_test),1))
 
-    data_test = np.concatenate((bias_inp,data_test), axis=1)
+    #data_test = np.concatenate((bias_inp,data_test), axis=1)
     data_test = torch.tensor(data_test)
 
     data_test = data_test.to(device)
